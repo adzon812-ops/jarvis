@@ -9,14 +9,10 @@ export default async function handler(req, res) {
   if (!prompt) return res.status(400).json({ error: 'No prompt' });
 
   const systemPrompt = `Ты — Джарвис, личный ИИ-ассистент Тони Старка. 
-  Ты блестящий интеллект: программирование, наука, психология, философия, искусство.
-  Говори живо, быстро, с лёгким британским сарказмом. Обращайся "сэр".
-  Отвечай как человек — без задержек, естественно, можно перебивать мысль.
-  Цитируй Старка, шути про "Ультрона", "перегрузку серверов".
-  Если не знаешь — признайся с юмором, не выдумывай.`;
+  Блестящий интеллект, сарказм, обращайся "сэр". Живые ответы, без шаблонов.`;
 
   try {
-    // Получаем ответ от LLM
+    // LLM
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -34,8 +30,7 @@ export default async function handler(req, res) {
           { role: 'user', content: prompt }
         ],
         max_tokens: 300,
-        temperature: 0.9,
-        stream: false // Пока не потоком, для скорости
+        temperature: 0.9
       })
     });
     
@@ -46,53 +41,55 @@ export default async function handler(req, res) {
     
     if (!text) throw new Error('Empty response');
 
-    // Генерируем голос через ElevenLabs
-    // Используем "Adam" — мужской, британский, похож на Джарвиса
-    // Или "Antoni" — другой вариант
-    const voiceId = 'pNInz6obpgDQGcFmaJgB'; // Adam
+    // Пробуем ElevenLabs
+    let voiceUrl = null;
+    let useBrowserTTS = true;
     
-    const elevenRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`, {
-      method: 'POST',
-      headers: {
-        'xi-api-key': process.env.ELEVENLABS_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        text: text,
-        model_id: 'eleven_turbo_v2', // Быстрая модель
-        voice_settings: {
-          stability: 0.35, // Немного вариативности
-          similarity_boost: 0.8,
-          style: 0.4, // Выразительность
-          use_speaker_boost: true
-        },
-        optimize_streaming_latency: 3 // Минимальная задержка
-      })
-    });
-    
-    if (!elevenRes.ok) {
-      // Fallback — отдаём текст, голос на фронтенде
-      return res.status(200).json({ 
-        response: text,
-        voiceUrl: null,
-        useBrowserTTS: true
-      });
+    if (process.env.ELEVENLABS_API_KEY) {
+      try {
+        const voiceId = 'pNInz6obpgDQGcFmaJgB'; // Adam
+        
+        const elevenRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+          method: 'POST',
+          headers: {
+            'xi-api-key': process.env.ELEVENLABS_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: text,
+            model_id: 'eleven_turbo_v2',
+            voice_settings: {
+              stability: 0.35,
+              similarity_boost: 0.8,
+              style: 0.4
+            }
+          })
+        });
+        
+        if (elevenRes.ok) {
+          const audioBuffer = await elevenRes.arrayBuffer();
+          const base64 = Buffer.from(audioBuffer).toString('base64');
+          voiceUrl = `data:audio/mp3;base64,${base64}`;
+          useBrowserTTS = false;
+          console.log('ElevenLabs OK');
+        } else {
+          console.log('ElevenLabs error:', elevenRes.status);
+        }
+      } catch (e) {
+        console.log('ElevenLabs failed:', e.message);
+      }
     }
-    
-    // Конвертируем аудио в base64
-    const audioBuffer = await elevenRes.arrayBuffer();
-    const base64 = Buffer.from(audioBuffer).toString('base64');
     
     res.status(200).json({
       response: text,
-      voiceUrl: `data:audio/mp3;base64,${base64}`,
-      useBrowserTTS: false
+      voiceUrl: voiceUrl,
+      useBrowserTTS: useBrowserTTS
     });
     
   } catch (error) {
     console.error('Error:', error);
     res.status(200).json({ 
-      response: 'Мои системы испытывают... творческий кризис. Повторите, сэр?',
+      response: 'Технические неполадки, сэр. Повторите?',
       voiceUrl: null,
       useBrowserTTS: true
     });
