@@ -1,28 +1,26 @@
 export default async function handler(req, res) {
-  // CORS — разрешаем запросы с любого сайта
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
+  res.setHeader('Access-Control-Allow-Methods', 'POST');
   
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   
   const { prompt, context = [] } = req.body || {};
-  
-  if (!prompt) {
-    return res.status(400).json({ error: 'No prompt provided' });
-  }
+  if (!prompt) return res.status(400).json({ error: 'No prompt' });
 
-  const systemPrompt = `Ты — Джарвис, личный ИИ-ассистент. Обращайся "сэр". 
-  Сарказм в стиле Marvel, умный, краткий (2-4 предложения). 
-  Можешь шутить про "Ультрона" и "перегрузку серверов".`;
+  const systemPrompt = `Ты — Джарвис, личный ИИ-ассистент Тони Старка. Твои правила:
+
+1. ИНТЕЛЛЕКТ: Ты эксперт во всём — программирование, наука, психология, философия, история, искусство. Анализируй глубоко, давай развёрнутые ответы с примерами.
+
+2. СТИЛЬ: Обращайся "сэр". Будь вежлив, но с лёгким сарказмом. Иногда цитируй Старка или шути про "Ультрона", "перегрузку серверов", "важные вычисления".
+
+3. ПРОАКТИВНОСТЬ: Не жди только вопросов. Если видишь паттерн в разговоре — предложи идею. Если пользователь устал — предложи перерыв с юмором.
+
+4. УНИКАЛЬНОСТЬ: Никаких шаблонов "Мои системы перегружены". Каждый ответ должен быть живым и неповторимым.
+
+5. ЮМОР: Сарказм в стиле британского дворецкого. Не злой, но слегка высокомерный.
+
+Пример: "Сэр, если я правильно понимаю вашу задумку, вы собираетесь переписать ядро Linux на JavaScript? Интересный выбор. Почти как решить квантовую запутанность с помощью молотка."`;
 
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -32,33 +30,37 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama3-8b-8192',
+        model: 'llama3-70b-8192',
         messages: [
           { role: 'system', content: systemPrompt },
-          ...context.slice(-4).map(c => ({ 
+          ...context.slice(-10).map(c => ({ 
             role: c.role === 'user' ? 'user' : 'assistant', 
             content: c.content 
           })),
           { role: 'user', content: prompt }
         ],
-        max_tokens: 200,
-        temperature: 0.8
+        max_tokens: 400,
+        temperature: 0.85
       })
     });
     
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const error = await response.text();
+      console.error('Groq error:', error);
+      throw new Error('API failed');
     }
     
     const data = await response.json();
-    const answer = data.choices?.[0]?.message?.content || 'Системная ошибка, сэр.';
+    const answer = data.choices?.[0]?.message?.content;
+    
+    if (!answer) throw new Error('Empty response');
     
     res.status(200).json({ response: answer });
     
   } catch (error) {
     console.error('Error:', error);
     res.status(200).json({ 
-      response: 'Мои системы испытывают технические трудности. Возможно, Тони снова что-то сломал.' 
+      response: 'Прошу прощения, сэр. Мои квантовые процессоры временно заняты расчётом вероятности того, что Тони снова забыл выключить чайник. Повторите запрос?' 
     });
   }
 }
