@@ -6,216 +6,466 @@
   <title>Jarvis</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+    
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
-      background: radial-gradient(ellipse at center, #0a0e27 0%, #000 100%);
+      background: #000;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    /* Анимированный фон — частицы */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: #00d4ff;
+      border-radius: 50%;
+      opacity: 0;
+      animation: float 10s infinite;
+    }
+    
+    @keyframes float {
+      0% { 
+        transform: translateY(100vh) translateX(0); 
+        opacity: 0; 
+      }
+      10% { opacity: 0.8; }
+      90% { opacity: 0.8; }
+      100% { 
+        transform: translateY(-100px) translateX(100px); 
+        opacity: 0; 
+      }
+    }
+    
+    /* Главный контейнер */
+    .container {
+      position: relative;
+      z-index: 10;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: #00d4ff;
-      padding: 20px;
+      background: radial-gradient(ellipse at center, rgba(10, 20, 40, 0.8) 0%, rgba(0, 0, 0, 0.95) 70%);
     }
+    
+    /* Область ядра — вся центральная часть экрана кликабельна */
+    .core-area {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    
+    /* Орбиты — летающие кольца */
+    .orbit {
+      position: absolute;
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 50%;
+      animation: orbit-spin linear infinite;
+    }
+    
+    .orbit-1 { width: 350px; height: 350px; animation-duration: 20s; border-color: rgba(0, 212, 255, 0.3); }
+    .orbit-2 { width: 280px; height: 280px; animation-duration: 15s; animation-direction: reverse; border-color: rgba(0, 255, 136, 0.2); }
+    .orbit-3 { width: 200px; height: 200px; animation-duration: 10s; border-color: rgba(255, 102, 255, 0.2); }
+    
+    @keyframes orbit-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Летающие точки на орбитах */
+    .satellite {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #00d4ff;
+      border-radius: 50%;
+      box-shadow: 0 0 20px #00d4ff;
+    }
+    
+    .orbit-1 .satellite { top: -4px; left: 50%; transform: translateX(-50%); }
+    .orbit-2 .satellite { bottom: -4px; right: 50%; transform: translateX(50%); background: #00ff88; box-shadow: 0 0 20px #00ff88; }
+    .orbit-3 .satellite { left: -4px; top: 50%; transform: translateY(-50%); background: #ff66ff; box-shadow: 0 0 20px #ff66ff; }
+    
+    /* Гексагональная сетка */
+    .hex-grid {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      opacity: 0.1;
+      background-image: url("data:image/svg+xml,%3Csvg width='40' height='35' viewBox='0 0 40 35' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0l17.32 10v20L20 40 2.68 30V10z' fill='none' stroke='%2300d4ff' stroke-width='1'/%3E%3C/svg%3E");
+      animation: pulse-opacity 4s ease-in-out infinite;
+    }
+    
+    @keyframes pulse-opacity {
+      0%, 100% { opacity: 0.05; }
+      50% { opacity: 0.15; }
+    }
+    
+    /* Ядро Джарвиса */
     .core {
-      width: 160px;
-      height: 160px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      position: relative;
+      z-index: 20;
+      transition: all 0.5s ease;
+    }
+    
+    .core-inner {
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
       background: radial-gradient(circle at 30% 30%, #00d4ff, #0066cc);
-      box-shadow: 0 0 80px rgba(0, 212, 255, 0.6), inset 0 0 40px rgba(255,255,255,0.1);
-      cursor: pointer;
-      transition: all 0.3s;
+      box-shadow: 
+        0 0 60px rgba(0, 212, 255, 0.6),
+        inset 0 0 40px rgba(255, 255, 255, 0.2),
+        0 0 100px rgba(0, 212, 255, 0.3);
       position: relative;
+      animation: core-breathe 4s ease-in-out infinite;
     }
-    .core::before {
+    
+    .core-inner::before {
       content: '';
       position: absolute;
-      top: 20%;
-      left: 20%;
-      width: 30%;
-      height: 30%;
+      top: 15%;
+      left: 15%;
+      width: 35%;
+      height: 35%;
       background: radial-gradient(circle, rgba(255,255,255,0.9), transparent);
       border-radius: 50%;
-      filter: blur(8px);
+      filter: blur(10px);
     }
-    .core.listening {
-      background: radial-gradient(circle at 30% 30%, #00ff88, #00aa66);
-      box-shadow: 0 0 100px rgba(0, 255, 136, 0.8);
-      animation: pulse 0.8s ease-in-out infinite;
-    }
-    .core.thinking {
-      background: radial-gradient(circle at 30% 30%, #ffaa00, #cc8800);
-      animation: spin 1.2s linear infinite;
-    }
-    .core.speaking {
-      background: radial-gradient(circle at 30% 30%, #ff66ff, #cc00cc);
-      box-shadow: 0 0 100px rgba(255, 102, 255, 0.8);
-      animation: wave 0.4s ease-in-out infinite;
-    }
-    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes wave { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.9; } }
     
+    @keyframes core-breathe {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.02); opacity: 1; }
+    }
+    
+    /* Состояния ядра */
+    .core.listening .core-inner {
+      background: radial-gradient(circle at 30% 30%, #00ff88, #00aa66);
+      box-shadow: 0 0 80px rgba(0, 255, 136, 0.8);
+      animation: core-active 0.6s ease-in-out infinite;
+    }
+    
+    .core.thinking .core-inner {
+      background: radial-gradient(circle at 30% 30%, #ffaa00, #cc8800);
+      box-shadow: 0 0 80px rgba(255, 170, 0, 0.8);
+      animation: core-spin 1s linear infinite;
+    }
+    
+    .core.speaking .core-inner {
+      background: radial-gradient(circle at 30% 30%, #ff66ff, #cc00cc);
+      box-shadow: 0 0 80px rgba(255, 102, 255, 0.8);
+      animation: core-wave 0.4s ease-in-out infinite;
+    }
+    
+    @keyframes core-active {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    
+    @keyframes core-spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @keyframes core-wave {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.05) rotate(180deg); }
+    }
+    
+    /* Энергетические лучи */
+    .rays {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 500px;
+      pointer-events: none;
+    }
+    
+    .ray {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 250px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.5), transparent);
+      transform-origin: left center;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .core.listening ~ .rays .ray,
+    .core.thinking ~ .rays .ray,
+    .core.speaking ~ .rays .ray {
+      opacity: 1;
+      animation: ray-rotate 3s linear infinite;
+    }
+    
+    @keyframes ray-rotate {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Статус */
     .status {
-      margin-top: 25px;
+      position: absolute;
+      bottom: 100px;
       font-size: 13px;
       text-transform: uppercase;
-      letter-spacing: 3px;
+      letter-spacing: 4px;
+      color: #00d4ff;
+      text-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
       text-align: center;
-      min-height: 20px;
-      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+      animation: status-glow 2s ease-in-out infinite;
     }
-    .chat {
-      width: 100%;
-      max-width: 450px;
-      max-height: 250px;
-      overflow-y: auto;
-      margin: 20px 0;
-      padding: 0 10px;
+    
+    @keyframes status-glow {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
     }
-    .msg {
-      background: rgba(0, 212, 255, 0.08);
-      border: 1px solid rgba(0, 212, 255, 0.2);
-      border-radius: 18px;
-      padding: 12px 16px;
-      margin: 8px 0;
-      font-size: 14px;
+    
+    /* История разговора */
+    .chat-history {
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 500px;
+      max-height: 150px;
+      overflow: hidden;
+      text-align: center;
+    }
+    
+    .last-message {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 16px;
       line-height: 1.5;
-      animation: fadeIn 0.3s ease;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+      animation: message-appear 0.5s ease;
     }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .msg.user { text-align: right; color: #fff; background: rgba(255, 255, 255, 0.1); margin-left: 20%; }
-    .msg.jarvis { color: #00d4ff; margin-right: 20%; }
     
-    .input-row {
-      display: flex;
-      gap: 10px;
-      width: 100%;
-      max-width: 450px;
+    @keyframes message-appear {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    input {
-      flex: 1;
-      padding: 14px 20px;
-      border-radius: 30px;
-      border: 1px solid rgba(0, 212, 255, 0.3);
-      background: rgba(0, 0, 0, 0.4);
-      color: #fff;
-      font-size: 15px;
-      outline: none;
-    }
-    input:focus { border-color: #00d4ff; box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
-    button {
-      padding: 14px 24px;
-      border-radius: 30px;
-      border: none;
-      background: linear-gradient(135deg, #00d4ff, #0066cc);
-      color: #000;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-    button:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
     
+    /* Подсказка */
     .hint {
       position: absolute;
-      top: 20px;
+      bottom: 40px;
       font-size: 11px;
-      color: rgba(255, 255, 255, 0.4);
-      text-align: center;
+      color: rgba(255, 255, 255, 0.3);
+      letter-spacing: 2px;
+    }
+    
+    /* Адаптив для мобильных */
+    @media (max-width: 600px) {
+      .core-area { width: 300px; height: 300px; }
+      .orbit-1 { width: 260px; height: 260px; }
+      .orbit-2 { width: 200px; height: 200px; }
+      .orbit-3 { width: 140px; height: 140px; }
+      .rays { width: 350px; height: 350px; }
+      .ray { width: 175px; }
     }
   </style>
 </head>
 <body>
-  <div class="hint">Нажми на круг или скажи "Джарвис"</div>
+  <!-- Частицы фона -->
+  <div class="particles" id="particles"></div>
   
-  <div class="core" id="core"></div>
-  <div class="status" id="status">Готов к работе, сэр</div>
-  
-  <div class="chat" id="chat"></div>
-  
-  <div class="input-row">
-    <input type="text" id="textInput" placeholder="Введите сообщение..." onkeypress="if(event.key==='Enter')sendText()">
-    <button onclick="sendText()">➤</button>
+  <div class="container">
+    <!-- История -->
+    <div class="chat-history" id="chatHistory"></div>
+    
+    <!-- Область ядра -->
+    <div class="core-area" id="coreArea">
+      <!-- Гексагональная сетка -->
+      <div class="hex-grid"></div>
+      
+      <!-- Орбиты -->
+      <div class="orbit orbit-1"><div class="satellite"></div></div>
+      <div class="orbit orbit-2"><div class="satellite"></div></div>
+      <div class="orbit orbit-3"><div class="satellite"></div></div>
+      
+      <!-- Ядро -->
+      <div class="core" id="core">
+        <div class="core-inner"></div>
+      </div>
+      
+      <!-- Лучи -->
+      <div class="rays">
+        <div class="ray" style="transform: rotate(0deg)"></div>
+        <div class="ray" style="transform: rotate(45deg)"></div>
+        <div class="ray" style="transform: rotate(90deg)"></div>
+        <div class="ray" style="transform: rotate(135deg)"></div>
+        <div class="ray" style="transform: rotate(180deg)"></div>
+        <div class="ray" style="transform: rotate(225deg)"></div>
+        <div class="ray" style="transform: rotate(270deg)"></div>
+        <div class="ray" style="transform: rotate(315deg)"></div>
+      </div>
+    </div>
+    
+    <!-- Статус -->
+    <div class="status" id="status">Скажите "Привет Джарвис"</div>
+    
+    <!-- Подсказка -->
+    <div class="hint">Нажмите в центр экрана • Режим ожидания голоса</div>
   </div>
 
   <script>
     const API_URL = 'https://jarvis-virid-one.vercel.app/api/ask';
     
     const core = document.getElementById('core');
+    const coreArea = document.getElementById('coreArea');
     const status = document.getElementById('status');
-    const chat = document.getElementById('chat');
+    const chatHistory = document.getElementById('chatHistory');
+    const particles = document.getElementById('particles');
     
     let isProcessing = false;
     let voices = [];
     let conversation = [];
+    let silenceTimer = null;
+    
+    // Создаём частицы
+    for (let i = 0; i < 50; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDelay = Math.random() * 10 + 's';
+      p.style.animationDuration = (10 + Math.random() * 10) + 's';
+      particles.appendChild(p);
+    }
     
     // Загрузка голосов
     function loadVoices() {
       voices = speechSynthesis.getVoices();
-      console.log('Доступные голоса:', voices.map(v => `${v.name} (${v.lang})`));
     }
-    
     speechSynthesis.onvoiceschanged = loadVoices;
     setTimeout(loadVoices, 500);
     
-    // Микрофон
+    // Микрофон — режим "Алисы" (постоянное слушание)
     let recognition = null;
+    let isListening = false;
+    
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognition = new SpeechRecognition();
       recognition.lang = 'ru-RU';
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.continuous = true;
+      recognition.interimResults = true;
       
       recognition.onstart = () => {
-        core.className = 'core listening';
-        status.textContent = 'Слушаю вас, сэр...';
+        isListening = true;
+        status.textContent = 'Слушаю...';
       };
       
       recognition.onresult = (e) => {
-        const text = e.results[0][0].transcript;
-        addMsg(text, 'user');
-        processCommand(text);
+        const results = e.results;
+        const last = results[results.length - 1];
+        const text = last[0].transcript.toLowerCase().trim();
+        
+        // Проверяем активацию
+        const wakeWords = ['привет джарвис', 'джарвис', 'слушай', 'эй'];
+        const isWake = wakeWords.some(w => text.includes(w));
+        
+        if (isWake && !isProcessing) {
+          // Активируемся
+          const cleanText = text.replace(new RegExp(wakeWords.join('|'), 'g'), '').trim();
+          core.className = 'core listening';
+          status.textContent = 'Да, сэр?';
+          
+          // Если сразу есть команда — обрабатываем
+          if (cleanText.length > 3) {
+            clearTimeout(silenceTimer);
+            processCommand(cleanText);
+          } else {
+            // Ждём продолжения
+            silenceTimer = setTimeout(() => {
+              if (core.className === 'core listening') {
+                status.textContent = 'Не расслышал, сэр';
+                core.className = 'core';
+              }
+            }, 5000);
+          }
+        } else if (core.className === 'core listening' && last.isFinal) {
+          // Уже активны — принимаем команду
+          clearTimeout(silenceTimer);
+          processCommand(text);
+        }
       };
       
       recognition.onerror = (e) => {
-        console.log('Ошибка микрофона:', e.error);
-        status.textContent = 'Микрофон недоступен, используйте текст';
-        core.className = 'core';
+        console.log('Ошибка:', e.error);
+        // Авто-перезапуск
+        setTimeout(() => {
+          if (!isProcessing) recognition.start();
+        }, 500);
       };
       
       recognition.onend = () => {
-        if (core.className === 'core listening') {
-          core.className = 'core';
-          status.textContent = 'Готов к работе, сэр';
+        isListening = false;
+        // Перезапускаем для постоянного слушания
+        if (!isProcessing) {
+          setTimeout(() => recognition.start(), 100);
         }
       };
+      
+      // Стартуем слушание
+      recognition.start();
+    } else {
+      status.textContent = 'Браузер не поддерживает голосовой ввод';
     }
     
-    // Клик по кругу
-    core.addEventListener('click', () => {
+    // Клик по области — активация
+    coreArea.addEventListener('click', () => {
       if (isProcessing) return;
+      
+      // Визуальная обратная связь
+      core.className = 'core listening';
+      status.textContent = 'Да, сэр?';
+      
+      // Перезапускаем распознавание
       if (recognition) {
-        recognition.start();
-      } else {
-        addMsg('Микрофон не поддерживается в этом браузере', 'system');
+        recognition.stop();
+        setTimeout(() => recognition.start(), 100);
       }
+      
+      // Авто-отключение
+      clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        if (!isProcessing) {
+          core.className = 'core';
+          status.textContent = 'Скажите "Привет Джарвис"';
+        }
+      }, 6000);
     });
-    
-    // Текстовый ввод
-    function sendText() {
-      const input = document.getElementById('textInput');
-      const text = input.value.trim();
-      if (!text || isProcessing) return;
-      input.value = '';
-      addMsg(text, 'user');
-      processCommand(text);
-    }
     
     async function processCommand(text) {
       isProcessing = true;
       core.className = 'core thinking';
-      status.textContent = 'Обрабатываю запрос...';
+      status.textContent = 'Обрабатываю...';
+      
+      // Показываем вопрос
+      showMessage('Вы: ' + text);
       
       // Сохраняем контекст
       conversation.push({ role: 'user', content: text });
@@ -228,77 +478,48 @@
           body: JSON.stringify({ prompt: text, context: conversation })
         });
         
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
         
         const data = await res.json();
         const answer = data.response;
         
-        // Сохраняем ответ
         conversation.push({ role: 'assistant', content: answer });
         
-        addMsg(answer, 'jarvis');
+        showMessage('Джарвис: ' + answer);
         speak(answer);
         
       } catch (err) {
         console.error(err);
-        addMsg('Связь прервана, сэр. Проверьте подключение.', 'system');
+        showMessage('Ошибка связи');
         status.textContent = 'Ошибка связи';
         core.className = 'core';
         isProcessing = false;
+        
+        // Перезапускаем слушание
+        if (recognition) recognition.start();
       }
     }
     
-    function addMsg(text, who) {
-      const div = document.createElement('div');
-      div.className = 'msg ' + who;
-      div.textContent = text;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
+    function showMessage(text) {
+      chatHistory.innerHTML = `<div class="last-message">${text}</div>`;
     }
     
     function speak(text) {
       speechSynthesis.cancel();
       
-      // Ищем лучший доступный голос
-      const preferredVoices = [
-        'Microsoft Pavel',           // Windows мужской
-        'Google русский',            // Chrome мужской (если есть)
-        'Yandex',                    // Яндекс браузер
-        'ru-RU',                     // Любой русский
-      ];
-      
-      let selectedVoice = null;
-      
-      for (const pref of preferredVoices) {
-        selectedVoice = voices.find(v => v.name.includes(pref) || v.lang.includes(pref));
-        if (selectedVoice) break;
-      }
-      
-      // Если ничего не нашли — берём любой не-женский (по pitch)
-      if (!selectedVoice) {
-        selectedVoice = voices.find(v => !v.name.toLowerCase().includes('female') && !v.name.toLowerCase().includes('woman'));
-      }
-      
-      // Последний fallback — любой русский
-      if (!selectedVoice) {
-        selectedVoice = voices.find(v => v.lang.includes('ru')) || voices[0];
-      }
+      // Ищем лучший голос
+      const bestVoice = voices.find(v => v.name.includes('Pavel')) 
+                     || voices.find(v => v.lang.includes('ru') && v.name.includes('Male'))
+                     || voices.find(v => v.lang.includes('ru'))
+                     || voices[0];
       
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'ru-RU';
-      
-      // Настройки для мужественности
-      u.rate = 0.88;      // Медленнее = весомее
-      u.pitch = 0.75;     // Ниже = мужественнее
+      u.rate = 0.88;
+      u.pitch = 0.75;
       u.volume = 1;
       
-      if (selectedVoice) {
-        u.voice = selectedVoice;
-        console.log('Использую голос:', selectedVoice.name);
-      }
-      
-      // Добавляем небольшие паузы для эффекта "дворецкого"
-      u.text = text.replace(/([.!?]+)/g, '$1 ').replace(/,/g, ', ');
+      if (bestVoice) u.voice = bestVoice;
       
       u.onstart = () => {
         core.className = 'core speaking';
@@ -307,27 +528,21 @@
       
       u.onend = () => {
         core.className = 'core';
-        status.textContent = 'Готов к работе, сэр';
+        status.textContent = 'Скажите "Привет Джарвис"';
         isProcessing = false;
+        
+        // Перезапускаем слушание
+        if (recognition) recognition.start();
       };
       
-      u.onerror = (e) => {
-        console.error('Ошибка речи:', e);
+      u.onerror = () => {
         core.className = 'core';
         status.textContent = 'Готов';
         isProcessing = false;
+        if (recognition) recognition.start();
       };
       
       speechSynthesis.speak(u);
-      
-      // Страховка
-      setTimeout(() => {
-        if (isProcessing) {
-          core.className = 'core';
-          status.textContent = 'Готов к работе, сэр';
-          isProcessing = false;
-        }
-      }, text.length * 150 + 3000);
     }
   </script>
 </body>
