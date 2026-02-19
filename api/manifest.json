@@ -1,0 +1,12 @@
+{
+  "name": "Jarvis Assistant",
+  "short_name": "Jarvis",
+  "description": "Личный голосовой ИИ-ассистент",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0e27",
+  "theme_color": "#00d4ff",
+  "icons": [
+    { "src": "https://cdn-icons-png.flaticon.com/512/4712/4712139.png", "sizes": "512x512" }
+  ]
+}
