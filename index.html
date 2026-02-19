@@ -7,7 +7,7 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: system-ui, sans-serif;
+      font-family: 'Segoe UI', system-ui, sans-serif;
       background: radial-gradient(ellipse at center, #0a0e27 0%, #000 100%);
       min-height: 100vh;
       display: flex;
@@ -18,101 +18,124 @@
       padding: 20px;
     }
     .core {
-      width: 150px;
-      height: 150px;
+      width: 160px;
+      height: 160px;
       border-radius: 50%;
       background: radial-gradient(circle at 30% 30%, #00d4ff, #0066cc);
-      box-shadow: 0 0 60px rgba(0, 212, 255, 0.6);
+      box-shadow: 0 0 80px rgba(0, 212, 255, 0.6), inset 0 0 40px rgba(255,255,255,0.1);
       cursor: pointer;
       transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 30px;
       position: relative;
     }
-    .core::after {
-      content: '🎤';
-      font-size: 40px;
-      opacity: 0.8;
+    .core::before {
+      content: '';
+      position: absolute;
+      top: 20%;
+      left: 20%;
+      width: 30%;
+      height: 30%;
+      background: radial-gradient(circle, rgba(255,255,255,0.9), transparent);
+      border-radius: 50%;
+      filter: blur(8px);
     }
-    .core:active { transform: scale(0.95); }
-    .core.listening { 
-      background: #00ff88; 
-      box-shadow: 0 0 80px rgba(0, 255, 136, 0.8);
-      animation: pulse 0.8s infinite; 
+    .core.listening {
+      background: radial-gradient(circle at 30% 30%, #00ff88, #00aa66);
+      box-shadow: 0 0 100px rgba(0, 255, 136, 0.8);
+      animation: pulse 0.8s ease-in-out infinite;
     }
-    .core.thinking { 
-      background: #ffaa00; 
-      animation: spin 1s linear infinite; 
+    .core.thinking {
+      background: radial-gradient(circle at 30% 30%, #ffaa00, #cc8800);
+      animation: spin 1.2s linear infinite;
     }
-    .core.speaking { 
-      background: #ff66ff; 
-      animation: wave 0.5s infinite; 
+    .core.speaking {
+      background: radial-gradient(circle at 30% 30%, #ff66ff, #cc00cc);
+      box-shadow: 0 0 100px rgba(255, 102, 255, 0.8);
+      animation: wave 0.4s ease-in-out infinite;
     }
-    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes wave { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes wave { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.9; } }
     
-    .status { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; min-height: 20px; }
-    .chat { width: 100%; max-width: 400px; max-height: 300px; overflow-y: auto; margin-bottom: 20px; }
-    .msg { 
-      background: rgba(0,212,255,0.1); 
-      border: 1px solid rgba(0,212,255,0.3); 
-      border-radius: 15px; 
-      padding: 12px; 
+    .status {
+      margin-top: 25px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      text-align: center;
+      min-height: 20px;
+      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    }
+    .chat {
+      width: 100%;
+      max-width: 450px;
+      max-height: 250px;
+      overflow-y: auto;
+      margin: 20px 0;
+      padding: 0 10px;
+    }
+    .msg {
+      background: rgba(0, 212, 255, 0.08);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 18px;
+      padding: 12px 16px;
       margin: 8px 0;
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.5;
+      animation: fadeIn 0.3s ease;
     }
-    .msg.user { text-align: right; color: #fff; background: rgba(255,255,255,0.1); }
-    .msg.jarvis { color: #00d4ff; }
-    .msg.system { color: #888; font-style: italic; text-align: center; background: transparent; border: none; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .msg.user { text-align: right; color: #fff; background: rgba(255, 255, 255, 0.1); margin-left: 20%; }
+    .msg.jarvis { color: #00d4ff; margin-right: 20%; }
     
     .input-row {
       display: flex;
       gap: 10px;
       width: 100%;
-      max-width: 400px;
+      max-width: 450px;
     }
     input {
       flex: 1;
-      padding: 12px 20px;
-      border-radius: 25px;
-      border: 1px solid rgba(0,212,255,0.3);
-      background: rgba(0,0,0,0.5);
+      padding: 14px 20px;
+      border-radius: 30px;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      background: rgba(0, 0, 0, 0.4);
       color: #fff;
-      font-size: 16px;
+      font-size: 15px;
+      outline: none;
     }
-    button.send {
-      padding: 12px 20px;
-      border-radius: 25px;
+    input:focus { border-color: #00d4ff; box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+    button {
+      padding: 14px 24px;
+      border-radius: 30px;
       border: none;
-      background: #00d4ff;
+      background: linear-gradient(135deg, #00d4ff, #0066cc);
       color: #000;
       font-weight: bold;
       cursor: pointer;
+      transition: all 0.3s;
     }
+    button:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
     
-    .voice-info {
+    .hint {
       position: absolute;
       top: 20px;
       font-size: 11px;
-      color: rgba(255,255,255,0.4);
+      color: rgba(255, 255, 255, 0.4);
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <div class="voice-info" id="voiceInfo">Проверка голосов...</div>
+  <div class="hint">Нажми на круг или скажи "Джарвис"</div>
   
   <div class="core" id="core"></div>
-  <div class="status" id="status">Нажми на круг 🎤</div>
+  <div class="status" id="status">Готов к работе, сэр</div>
   
   <div class="chat" id="chat"></div>
   
   <div class="input-row">
-    <input type="text" id="textInput" placeholder="Или пиши сюда..." onkeypress="if(event.key==='Enter')sendText()">
-    <button class="send" onclick="sendText()">➤</button>
+    <input type="text" id="textInput" placeholder="Введите сообщение..." onkeypress="if(event.key==='Enter')sendText()">
+    <button onclick="sendText()">➤</button>
   </div>
 
   <script>
@@ -121,23 +144,19 @@
     const core = document.getElementById('core');
     const status = document.getElementById('status');
     const chat = document.getElementById('chat');
-    const voiceInfo = document.getElementById('voiceInfo');
     
     let isProcessing = false;
     let voices = [];
+    let conversation = [];
     
     // Загрузка голосов
     function loadVoices() {
       voices = speechSynthesis.getVoices();
-      const ruVoices = voices.filter(v => v.lang.includes('ru'));
-      voiceInfo.textContent = `Голосов: ${voices.length}, русских: ${ruVoices.length}`;
       console.log('Доступные голоса:', voices.map(v => `${v.name} (${v.lang})`));
     }
     
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-      speechSynthesis.onvoiceschanged = loadVoices;
-    }
-    setTimeout(loadVoices, 1000); // На всякий случай
+    speechSynthesis.onvoiceschanged = loadVoices;
+    setTimeout(loadVoices, 500);
     
     // Микрофон
     let recognition = null;
@@ -150,30 +169,27 @@
       
       recognition.onstart = () => {
         core.className = 'core listening';
-        status.textContent = 'Слушаю...';
+        status.textContent = 'Слушаю вас, сэр...';
       };
       
       recognition.onresult = (e) => {
         const text = e.results[0][0].transcript;
-        addMsg('🎤 ' + text, 'user');
+        addMsg(text, 'user');
         processCommand(text);
       };
       
       recognition.onerror = (e) => {
         console.log('Ошибка микрофона:', e.error);
-        status.textContent = 'Микрофон недоступен, пиши текстом';
+        status.textContent = 'Микрофон недоступен, используйте текст';
         core.className = 'core';
       };
       
       recognition.onend = () => {
         if (core.className === 'core listening') {
           core.className = 'core';
-          status.textContent = 'Готов';
+          status.textContent = 'Готов к работе, сэр';
         }
       };
-    } else {
-      status.textContent = 'Браузер не поддерживает голосовой ввод';
-      voiceInfo.textContent = 'Нет поддержки Speech API';
     }
     
     // Клик по кругу
@@ -182,7 +198,7 @@
       if (recognition) {
         recognition.start();
       } else {
-        addMsg('Микрофон недоступен в этом браузере', 'system');
+        addMsg('Микрофон не поддерживается в этом браузере', 'system');
       }
     });
     
@@ -199,27 +215,34 @@
     async function processCommand(text) {
       isProcessing = true;
       core.className = 'core thinking';
-      status.textContent = 'Думаю...';
+      status.textContent = 'Обрабатываю запрос...';
+      
+      // Сохраняем контекст
+      conversation.push({ role: 'user', content: text });
+      if (conversation.length > 20) conversation = conversation.slice(-20);
       
       try {
         const res = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: text })
+          body: JSON.stringify({ prompt: text, context: conversation })
         });
         
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         
         const data = await res.json();
-        const answer = data.response || 'Нет ответа';
+        const answer = data.response;
+        
+        // Сохраняем ответ
+        conversation.push({ role: 'assistant', content: answer });
         
         addMsg(answer, 'jarvis');
         speak(answer);
         
       } catch (err) {
         console.error(err);
-        addMsg('Ошибка связи: ' + err.message, 'system');
-        status.textContent = 'Ошибка';
+        addMsg('Связь прервана, сэр. Проверьте подключение.', 'system');
+        status.textContent = 'Ошибка связи';
         core.className = 'core';
         isProcessing = false;
       }
@@ -234,24 +257,48 @@
     }
     
     function speak(text) {
-      // Отменяем предыдущее
       speechSynthesis.cancel();
+      
+      // Ищем лучший доступный голос
+      const preferredVoices = [
+        'Microsoft Pavel',           // Windows мужской
+        'Google русский',            // Chrome мужской (если есть)
+        'Yandex',                    // Яндекс браузер
+        'ru-RU',                     // Любой русский
+      ];
+      
+      let selectedVoice = null;
+      
+      for (const pref of preferredVoices) {
+        selectedVoice = voices.find(v => v.name.includes(pref) || v.lang.includes(pref));
+        if (selectedVoice) break;
+      }
+      
+      // Если ничего не нашли — берём любой не-женский (по pitch)
+      if (!selectedVoice) {
+        selectedVoice = voices.find(v => !v.name.toLowerCase().includes('female') && !v.name.toLowerCase().includes('woman'));
+      }
+      
+      // Последний fallback — любой русский
+      if (!selectedVoice) {
+        selectedVoice = voices.find(v => v.lang.includes('ru')) || voices[0];
+      }
       
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'ru-RU';
-      u.rate = 0.9;
-      u.pitch = 0.9;
+      
+      // Настройки для мужественности
+      u.rate = 0.88;      // Медленнее = весомее
+      u.pitch = 0.75;     // Ниже = мужественнее
       u.volume = 1;
       
-      // Выбираем голос
-      const ruVoice = voices.find(v => v.lang.includes('ru')) 
-                   || voices.find(v => v.lang.includes('RU'))
-                   || voices[0];
-      
-      if (ruVoice) {
-        u.voice = ruVoice;
-        console.log('Говорю голосом:', ruVoice.name);
+      if (selectedVoice) {
+        u.voice = selectedVoice;
+        console.log('Использую голос:', selectedVoice.name);
       }
+      
+      // Добавляем небольшие паузы для эффекта "дворецкого"
+      u.text = text.replace(/([.!?]+)/g, '$1 ').replace(/,/g, ', ');
       
       u.onstart = () => {
         core.className = 'core speaking';
@@ -260,36 +307,27 @@
       
       u.onend = () => {
         core.className = 'core';
-        status.textContent = 'Готов';
+        status.textContent = 'Готов к работе, сэр';
         isProcessing = false;
       };
       
       u.onerror = (e) => {
-        console.error('Ошибка TTS:', e);
-        status.textContent = 'Готов (без звука)';
+        console.error('Ошибка речи:', e);
         core.className = 'core';
+        status.textContent = 'Готов';
         isProcessing = false;
-        
-        // Fallback — пробуем ещё раз без указания голоса
-        if (e.error === 'not-allowed' || e.error === 'canceled') {
-          setTimeout(() => {
-            const u2 = new SpeechSynthesisUtterance(text);
-            u2.lang = 'ru-RU';
-            speechSynthesis.speak(u2);
-          }, 100);
-        }
       };
       
       speechSynthesis.speak(u);
       
-      // Страховка — если onend не сработал
+      // Страховка
       setTimeout(() => {
         if (isProcessing) {
           core.className = 'core';
-          status.textContent = 'Готов';
+          status.textContent = 'Готов к работе, сэр';
           isProcessing = false;
         }
-      }, text.length * 150 + 2000);
+      }, text.length * 150 + 3000);
     }
   </script>
 </body>
