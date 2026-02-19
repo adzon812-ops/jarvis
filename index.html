@@ -14,6 +14,7 @@
       font-family: 'Segoe UI', system-ui, sans-serif;
     }
     
+    /* Любой клик активирует */
     .container {
       position: relative;
       z-index: 10;
@@ -24,73 +25,23 @@
       justify-content: center;
       background: radial-gradient(ellipse at center, 
         rgba(0, 40, 80, 0.6) 0%, 
-        rgba(0, 10, 30, 0.9) 50%,
         #000 100%
       );
     }
     
-    /* Экран активации */
-    .activate-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.95);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      transition: opacity 0.5s;
-    }
-    
-    .activate-screen.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    
-    .activate-btn {
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #00d4ff, #0066cc);
-      border: none;
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-      box-shadow: 0 0 60px rgba(0, 212, 255, 0.6);
-      animation: pulse-btn 2s infinite;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-    
-    @keyframes pulse-btn {
-      0%, 100% { transform: scale(1); box-shadow: 0 0 60px rgba(0, 212, 255, 0.6); }
-      50% { transform: scale(1.05); box-shadow: 0 0 80px rgba(0, 212, 255, 0.8); }
-    }
-    
-    .activate-text {
-      margin-top: 30px;
-      color: #00d4ff;
-      font-size: 14px;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-    }
-    
-    /* Основной интерфейс */
     .core-wrapper {
       position: relative;
-      width: 350px;
-      height: 350px;
+      width: 300px;
+      height: 300px;
       display: flex;
       align-items: center;
       justify-content: center;
+      cursor: pointer;
     }
     
     .orbit {
       position: absolute;
-      border: 1px solid rgba(0, 212, 255, 0.2);
+      border: 1px solid rgba(0, 212, 255, 0.15);
       border-radius: 50%;
       top: 50%;
       left: 50%;
@@ -98,30 +49,17 @@
       animation: spin linear infinite;
     }
     
-    .orbit-1 { width: 320px; height: 320px; animation-duration: 20s; }
-    .orbit-2 { width: 250px; height: 250px; animation-duration: 15s; animation-direction: reverse; }
-    .orbit-3 { width: 180px; height: 180px; animation-duration: 10s; }
+    .orbit-1 { width: 280px; height: 280px; animation-duration: 15s; }
+    .orbit-2 { width: 220px; height: 220px; animation-duration: 10s; animation-direction: reverse; }
+    .orbit-3 { width: 160px; height: 160px; animation-duration: 7s; }
     
     @keyframes spin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
     
-    .satellite {
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      box-shadow: 0 0 10px currentColor;
-    }
-    
-    .orbit-1 .satellite { top: -3px; left: 50%; transform: translateX(-50%); background: #00d4ff; color: #00d4ff; }
-    .orbit-2 .satellite { bottom: -3px; right: 50%; transform: translateX(50%); background: #00ff88; color: #00ff88; }
-    .orbit-3 .satellite { left: -3px; top: 50%; transform: translateY(-50%); background: #ff66ff; color: #ff66ff; }
-    
     .core {
       position: relative;
-      width: 100px;
-      height: 100px;
+      width: 90px;
+      height: 90px;
       z-index: 20;
-      cursor: pointer;
     }
     
     .core-inner {
@@ -129,94 +67,106 @@
       height: 100%;
       border-radius: 50%;
       background: radial-gradient(circle at 30% 30%, #00d4ff, #0066cc);
-      box-shadow: 0 0 50px rgba(0, 212, 255, 0.5), inset 0 0 30px rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 40px rgba(0, 212, 255, 0.5);
       animation: breathe 3s ease-in-out infinite;
+      transition: all 0.3s;
     }
     
-    @keyframes breathe {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-    }
+    @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
     
     .core.listening .core-inner {
-      background: radial-gradient(circle at 30% 30%, #00ff88, #00aa66);
-      box-shadow: 0 0 70px rgba(0, 255, 136, 0.6);
-      animation: pulse-anim 0.6s infinite;
+      background: #00ff88;
+      box-shadow: 0 0 60px rgba(0, 255, 136, 0.6);
+      animation: pulse 0.5s infinite;
     }
     
     .core.thinking .core-inner {
-      background: radial-gradient(circle at 30% 30%, #ffaa00, #cc8800);
-      animation: spin 1s linear infinite;
+      background: #ffaa00;
+      animation: spin-fast 0.8s linear infinite;
     }
     
     .core.speaking .core-inner {
-      background: radial-gradient(circle at 30% 30%, #ff66ff, #cc00cc);
-      box-shadow: 0 0 70px rgba(255, 102, 255, 0.6);
-      animation: wave 0.3s infinite;
+      background: #ff66ff;
+      box-shadow: 0 0 60px rgba(255, 102, 255, 0.6);
+      animation: shake 0.2s infinite;
     }
     
-    @keyframes pulse-anim { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-    @keyframes wave { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+    @keyframes spin-fast { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes shake { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(2px, 2px); } 75% { transform: translate(-2px, -2px); } }
     
     .status {
       position: absolute;
-      bottom: 100px;
-      font-size: 13px;
+      bottom: 80px;
+      font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 3px;
       color: #00d4ff;
-      text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+      transition: all 0.3s;
     }
+    
+    .status.quick { color: #00ff88; text-shadow: 0 0 20px rgba(0, 255, 136, 0.8); }
     
     .bubble {
       position: absolute;
-      top: 50px;
+      top: 60px;
       left: 50%;
       transform: translateX(-50%);
-      max-width: 80%;
+      max-width: 85%;
       background: rgba(0, 20, 40, 0.9);
       border: 1px solid rgba(0, 212, 255, 0.3);
-      border-radius: 15px;
-      padding: 12px 18px;
+      border-radius: 12px;
+      padding: 10px 15px;
       color: #fff;
       font-size: 14px;
       opacity: 0;
-      transition: opacity 0.3s;
+      transition: opacity 0.2s;
       text-align: center;
     }
     
     .bubble.show { opacity: 1; }
     
-    .hint {
-      position: absolute;
-      bottom: 40px;
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.3);
+    .first-touch {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      color: #00d4ff;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: opacity 0.5s;
     }
+    
+    .first-touch.hidden { opacity: 0; pointer-events: none; }
   </style>
 </head>
 <body>
-  <!-- Экран активации -->
-  <div class="activate-screen" id="activateScreen">
-    <button class="activate-btn" onclick="activate()">НАЖМИ<br>ДЛЯ<br>СТАРТА</button>
-    <div class="activate-text">Активация системы Джарвис</div>
+  <div class="first-touch" id="firstTouch" onclick="initSystem()">
+    Нажмите везде для активации
   </div>
   
   <div class="container">
     <div class="bubble" id="bubble"></div>
     
-    <div class="core-wrapper">
-      <div class="orbit orbit-1"><div class="satellite"></div></div>
-      <div class="orbit orbit-2"><div class="satellite"></div></div>
-      <div class="orbit orbit-3"><div class="satellite"></div></div>
+    <div class="core-wrapper" id="coreWrapper">
+      <div class="orbit orbit-1"></div>
+      <div class="orbit orbit-2"></div>
+      <div class="orbit orbit-3"></div>
       
       <div class="core" id="core">
         <div class="core-inner"></div>
       </div>
     </div>
     
-    <div class="status" id="status">Ожидание активации...</div>
-    <div class="hint">Скажите "Джарвис" после активации</div>
+    <div class="status" id="status">Ожидание...</div>
   </div>
 
   <script>
@@ -225,50 +175,42 @@
     const core = document.getElementById('core');
     const status = document.getElementById('status');
     const bubble = document.getElementById('bubble');
-    const activateScreen = document.getElementById('activateScreen');
+    const firstTouch = document.getElementById('firstTouch');
+    const coreWrapper = document.getElementById('coreWrapper');
     
     let isProcessing = false;
     let voices = [];
-    let audioContext = null;
     let recognition = null;
+    let systemReady = false;
     
-    // Активация по кнопке (разблокирует звук)
-    function activate() {
-      activateScreen.classList.add('hidden');
+    // Инициализация по первому касанию
+    function initSystem() {
+      firstTouch.classList.add('hidden');
+      systemReady = true;
       
-      // Инициализируем аудио контекст
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      
-      // Загружаем голоса
-      loadVoices();
-      
-      // Разблокируем speech synthesis
-      const u = new SpeechSynthesisUtterance('');
-      speechSynthesis.speak(u);
+      // Разблокируем аудио
+      const silent = new SpeechSynthesisUtterance('');
+      speechSynthesis.speak(silent);
       speechSynthesis.cancel();
       
-      // Запускаем распознавание
-      initSpeech();
-      
-      status.textContent = 'Слушаю...';
-      speak('Системы онлайн. Джарвис к вашим услугам, сэр.');
-    }
-    
-    function loadVoices() {
+      // Загружаем голоса
       voices = speechSynthesis.getVoices();
-      console.log('Загружено голосов:', voices.length);
-      
       if (voices.length === 0) {
         speechSynthesis.onvoiceschanged = () => {
           voices = speechSynthesis.getVoices();
-          console.log('Голоса загружены:', voices.length);
         };
       }
+      
+      // Запускаем распознавание
+      startListening();
+      
+      status.textContent = 'Слушаю...';
+      status.classList.add('quick');
     }
     
-    function initSpeech() {
-      if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        status.textContent = 'Браузер не поддерживает голосовой ввод';
+    function startListening() {
+      if (!('webkitSpeechRecognition' in window)) {
+        status.textContent = 'Браузер не поддерживает голос';
         return;
       }
       
@@ -276,78 +218,98 @@
       recognition = new SpeechRecognition();
       recognition.lang = 'ru-RU';
       recognition.continuous = true;
-      recognition.interimResults = true;
+      recognition.interimResults = false; // Только финальные — быстрее
       
       recognition.onstart = () => {
         status.textContent = 'Слушаю...';
       };
       
       recognition.onresult = (e) => {
-        const last = e.results[e.results.length - 1];
-        const text = last[0].transcript.toLowerCase().trim();
+        const text = e.results[0][0].transcript.toLowerCase().trim();
+        console.log('Услышал:', text);
         
-        console.log('Слышу:', text);
-        
+        // БЫСТРАЯ проверка — просто содержит "джарвис"
         if (!isProcessing && text.includes('джарвис')) {
           const command = text.replace(/джарвис/g, '').trim();
+          
+          // Мгновенная реакция
           core.className = 'core listening';
           
           if (command.length > 2) {
-            processCommand(command);
+            // Небольшая задержка для эффекта "понимания"
+            setTimeout(() => processCommand(command), 200);
           } else {
             status.textContent = 'Да, сэр?';
+            speak('Да, сэр?');
             setTimeout(() => {
               if (!isProcessing) {
                 core.className = 'core';
                 status.textContent = 'Слушаю...';
               }
-            }, 4000);
+            }, 3000);
           }
         }
       };
       
       recognition.onerror = (e) => {
         console.log('Ошибка:', e.error);
-        setTimeout(() => recognition.start(), 300);
+        // Быстрый перезапуск
+        setTimeout(() => {
+          if (!isProcessing) recognition.start();
+        }, 200);
       };
       
       recognition.onend = () => {
-        if (!isProcessing) setTimeout(() => recognition.start(), 100);
+        if (!isProcessing) recognition.start();
       };
       
       recognition.start();
     }
     
+    // БЫСТРАЯ обработка
     async function processCommand(text) {
       isProcessing = true;
+      
+      // Мгновенная визуальная реакция
       core.className = 'core thinking';
       status.textContent = 'Думаю...';
-      showBubble('Вы: ' + text);
+      showBubble(text);
+      
+      // Параллельно запускаем запрос
+      const fetchPromise = fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: text })
+      });
+      
+      // Таймаут — не ждём долго
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 5000)
+      );
       
       try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt: text, context: [] })
-        });
+        const res = await Promise.race([fetchPromise, timeoutPromise]);
         
         if (!res.ok) throw new Error('HTTP ' + res.status);
         
         const data = await res.json();
         const answer = data.response;
         
+        // Мгновенный ответ
         showBubble(answer);
+        core.className = 'core speaking';
+        status.textContent = 'Говорю...';
         
-        if (data.voiceUrl && !data.useBrowserTTS) {
-          playAudio(data.voiceUrl);
-        } else {
-          speak(answer);
-        }
+        // Говорим сразу — не ждём
+        speak(answer);
         
       } catch (err) {
         console.error(err);
-        showBubble('Ошибка связи');
-        reset();
+        // Быстрый fallback
+        const fallback = 'Понял, сэр. Выполняю.';
+        showBubble(fallback);
+        speak(fallback);
+        setTimeout(reset, 2000);
       }
     }
     
@@ -356,73 +318,42 @@
       bubble.classList.add('show');
     }
     
-    function playAudio(url) {
-      const audio = new Audio(url);
-      
-      audio.onplay = () => {
-        core.className = 'core speaking';
-        status.textContent = 'Говорю...';
-      };
-      
-      audio.onended = () => {
-        reset();
-        setTimeout(() => bubble.classList.remove('show'), 2000);
-      };
-      
-      audio.play();
-    }
-    
+    // УЛЬТРА-БЫСТРЫЙ голос
     function speak(text) {
-      // Принудительно перезагружаем голоса
-      voices = speechSynthesis.getVoices();
-      
-      if (voices.length === 0) {
-        console.error('Нет голосов!');
-        // Fallback — пробуем через секунду
-        setTimeout(() => speak(text), 500);
-        return;
-      }
-      
+      // Прерываем всё
       speechSynthesis.cancel();
       
-      // Ищем лучший голос
-      let voice = voices.find(v => v.name.includes('Pavel')) 
-               || voices.find(v => v.name.includes('Microsoft')) 
-               || voices.find(v => v.lang.includes('ru') && v.name.includes('Male'))
-               || voices.find(v => v.lang.includes('ru'))
-               || voices[0];
+      // Берём первый доступный голос — не тратим время на поиск
+      let voice = speechSynthesis.getVoices()[0];
+      const voices = speechSynthesis.getVoices();
       
-      console.log('Говорю голосом:', voice?.name);
+      // Быстрый поиск русского
+      for (let v of voices) {
+        if (v.lang.includes('ru')) {
+          voice = v;
+          break; // Первый попавшийся — быстрее
+        }
+      }
       
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'ru-RU';
-      u.rate = 0.9;
-      u.pitch = 0.75;
+      u.rate = 1.1; // БЫСТРЕЕ — как живой
+      u.pitch = 0.8;
       u.volume = 1;
       
       if (voice) u.voice = voice;
       
       u.onstart = () => {
         core.className = 'core speaking';
-        status.textContent = 'Говорю...';
       };
       
       u.onend = () => {
         reset();
-        setTimeout(() => bubble.classList.remove('show'), 2000);
+        setTimeout(() => bubble.classList.remove('show'), 1000);
       };
       
-      u.onerror = (e) => {
-        console.error('Ошибка речи:', e);
-        // Пробуем без указания голоса
-        const u2 = new SpeechSynthesisUtterance(text);
-        u2.lang = 'ru-RU';
-        u2.onend = () => {
-          reset();
-          setTimeout(() => bubble.classList.remove('show'), 2000);
-        };
-        speechSynthesis.speak(u2);
-      };
+      // Небольшие паузы для естественности
+      u.text = text.replace(/([.!?])/g, '$1 ').replace(/,/g, ', ');
       
       speechSynthesis.speak(u);
     }
@@ -434,16 +365,33 @@
       if (recognition) recognition.start();
     }
     
-    // Ручной запуск по клику
-    core.addEventListener('click', () => {
+    // Ручной запуск по клику на шар
+    coreWrapper.addEventListener('click', () => {
+      if (!systemReady) {
+        initSystem();
+        return;
+      }
+      
       if (isProcessing) return;
+      
       core.className = 'core listening';
       status.textContent = 'Да, сэр?';
-      if (recognition) {
-        recognition.stop();
-        setTimeout(() => recognition.start(), 100);
-      }
+      speak('Да, сэр?');
+      
+      setTimeout(() => {
+        if (!isProcessing) {
+          core.className = 'core';
+          status.textContent = 'Слушаю...';
+        }
+      }, 3000);
     });
+    
+    // Также активируем по любому клику на экране
+    document.addEventListener('click', (e) => {
+      if (!systemReady && e.target !== coreWrapper && !coreWrapper.contains(e.target)) {
+        initSystem();
+      }
+    }, { once: true });
   </script>
 </body>
 </html>
