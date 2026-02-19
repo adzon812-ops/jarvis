@@ -8,11 +8,14 @@ export default async function handler(req, res) {
   const { prompt, context = [] } = req.body || {};
   if (!prompt) return res.status(400).json({ error: 'No prompt' });
 
-  const systemPrompt = `Ты — Джарвис, личный ИИ-ассистент Тони Старка. 
-  Блестящий интеллект, сарказм, обращайся "сэр". Живые ответы, без шаблонов.`;
+  // Короткий, быстрый промпт
+  const systemPrompt = `Ты — Джарвис. Быстрый, умный, саркастичный. 
+  Отвечай 1-2 предложениями, живо, без воды. Обращайся "сэр". 
+  Примеры: "Готово, сэр. Хотя я бы сделал это через квантовую сеть." 
+  "Выполнено. Тони гордился бы, если бы не спал в лаборатории."`;
 
   try {
-    // LLM
+    // БЫСТРЫЙ запрос — меньше токенов, быстрая модель
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -20,78 +23,33 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
+        model: 'llama-3.1-8b-instant', // Самая быстрая
         messages: [
           { role: 'system', content: systemPrompt },
-          ...context.slice(-10).map(c => ({ 
-            role: c.role === 'user' ? 'user' : 'assistant', 
-            content: c.content 
-          })),
           { role: 'user', content: prompt }
         ],
-        max_tokens: 300,
-        temperature: 0.9
+        max_tokens: 100, // КОРОТКО — 1-2 предложения
+        temperature: 0.8
       })
     });
     
     if (!groqRes.ok) throw new Error('Groq error');
     
-    const groqData = await groqRes.json();
-    const text = groqData.choices?.[0]?.message?.content;
+    const data = await groqRes.json();
+    const text = data.choices?.[0]?.message?.content;
     
-    if (!text) throw new Error('Empty response');
-
-    // Пробуем ElevenLabs
-    let voiceUrl = null;
-    let useBrowserTTS = true;
+    if (!text) throw new Error('Empty');
     
-    if (process.env.ELEVENLABS_API_KEY) {
-      try {
-        const voiceId = 'pNInz6obpgDQGcFmaJgB'; // Adam
-        
-        const elevenRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-          method: 'POST',
-          headers: {
-            'xi-api-key': process.env.ELEVENLABS_API_KEY,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            text: text,
-            model_id: 'eleven_turbo_v2',
-            voice_settings: {
-              stability: 0.35,
-              similarity_boost: 0.8,
-              style: 0.4
-            }
-          })
-        });
-        
-        if (elevenRes.ok) {
-          const audioBuffer = await elevenRes.arrayBuffer();
-          const base64 = Buffer.from(audioBuffer).toString('base64');
-          voiceUrl = `data:audio/mp3;base64,${base64}`;
-          useBrowserTTS = false;
-          console.log('ElevenLabs OK');
-        } else {
-          console.log('ElevenLabs error:', elevenRes.status);
-        }
-      } catch (e) {
-        console.log('ElevenLabs failed:', e.message);
-      }
-    }
-    
+    // НЕ ждём ElevenLabs — отдаём текст сразу, голос на фронтенде
     res.status(200).json({
       response: text,
-      voiceUrl: voiceUrl,
-      useBrowserTTS: useBrowserTTS
+      useBrowserTTS: true // Всегда браузерный — быстрее
     });
     
   } catch (error) {
-    console.error('Error:', error);
+    console.error(error);
     res.status(200).json({ 
-      response: 'Технические неполадки, сэр. Повторите?',
-      voiceUrl: null,
-      useBrowserTTS: true
+      response: 'Системы заняты, сэр. Повторите?' 
     });
   }
 }
