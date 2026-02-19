@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0e27">
+  <title>Jarvis</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --primary: #00d4ff; --accent: #00ff88; --warning: #ffaa00; }
+    body {
+      font-family: system-ui, sans-serif;
+      background: radial-gradient(ellipse at center, #0a0e27 0%, #000 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      color: var(--primary);
+    }
+    .rings {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      pointer-events: none;
+    }
+    .ring {
+      position: absolute;
+      border: 2px solid rgba(0, 212, 255, 0.2);
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: pulse 3s ease-out infinite;
+    }
+    .ring:nth-child(1) { width: 60%; height: 60%; }
+    .ring:nth-child(2) { width: 80%; height: 80%; animation-delay: 0.5s; }
+    .ring:nth-child(3) { width: 100%; height: 100%; animation-delay: 1s; }
+    @keyframes pulse {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+    }
+    .core {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, var(--primary), #0066cc);
+      box-shadow: 0 0 60px rgba(0, 212, 255, 0.6), inset 0 0 40px rgba(255, 255, 255, 0.2);
+      position: relative;
+      cursor: pointer;
+      transition: all 0.3s;
+      z-index: 10;
+    }
+    .core.listening {
+      background: radial-gradient(circle at 30% 30%, var(--accent), #00aa66);
+      animation: listening 0.6s ease-in-out infinite;
+    }
+    .core.thinking {
+      background: radial-gradient(circle at 30% 30%, var(--warning), #cc8800);
+      animation: spin 1s linear infinite;
+    }
+    .core.speaking {
+      background: radial-gradient(circle at 30% 30%, #ff66ff, #cc00cc);
+      animation: speaking 0.3s ease-in-out infinite;
+    }
+    @keyframes listening { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes speaking { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+    .status {
+      margin-top: 30px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-align: center;
+      text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+    }
+    .transcript {
+      position: absolute;
+      top: 15%;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.5);
+      font-style: italic;
+    }
+    .response {
+      position: absolute;
+      bottom: 20%;
+      font-size: 16px;
+      color: #fff;
+      max-width: 80%;
+      text-align: center;
+      line-height: 1.4;
+      padding: 0 20px;
+    }
+    .wake-indicator {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #333;
+      transition: all 0.3s;
+    }
+    .wake-indicator.active { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .btn-mic {
+      position: absolute;
+      bottom: 40px;
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      color: var(--primary);
+      padding: 15px 30px;
+      border-radius: 30px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="wake-indicator" id="wakeIndicator"></div>
+  <div class="transcript" id="transcript"></div>
+  
+  <div class="rings">
+    <div class="ring"></div>
+    <div class="ring"></div>
+    <div class="ring"></div>
+  </div>
+  
+  <div class="core" id="core"></div>
+  <div class="status" id="status">Скажите "Привет Джарвис"</div>
+  <div class="response" id="response"></div>
+  
+  <button class="btn-mic" id="btnMic">🎤 Удерживайте</button>
+
+  <script>
+    // ⚠️ ЗАМЕНИ ЭТО НА СВОЙ URL ИЗ VERCEL!
+    const API_URL = 'https://ТВОЙ-САЙТ.vercel.app/api/ask';
+    
+    const WAKE_WORDS = ['привет джарвис', 'джарвис', 'эй джарвис'];
+    
+    const core = document.getElementById('core');
+    const status = document.getElementById('status');
+    const transcript = document.getElementById('transcript');
+    const response = document.getElementById('response');
+    const wakeIndicator = document.getElementById('wakeIndicator');
+    const btnMic = document.getElementById('btnMic');
+    
+    let isListening = false;
+    let recognition = null;
+    let synth = window.speechSynthesis;
+    
+    // Инициализация
+    function init() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        status.textContent = 'Браузер не поддерживает голос';
+        return;
+      }
+      
+      recognition = new SpeechRecognition();
+      recognition.lang = 'ru-RU';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      
+      recognition.onresult = (e) => {
+        const last = e.results[e.results.length - 1];
+        const text = last[0].transcript.toLowerCase();
+        transcript.textContent = text;
+        
+        // Wake Word
+        if (!isListening && WAKE_WORDS.some(w => text.includes(w))) {
+          activate();
+        }
+        
+        // Команда после активации
+        if (isListening && last.isFinal) {
+          sendToAI(text);
+        }
+      };
+      
+      recognition.onerror = (e) => console.log('Ошибка:', e.error);
+      recognition.onend = () => recognition.start();
+      
+      recognition.start();
+    }
+    
+    function activate() {
+      isListening = true;
+      core.className = 'core listening';
+      status.textContent = 'Слушаю, сэр...';
+      wakeIndicator.classList.add('active');
+      
+      // Авто-отключение через 5 сек
+      setTimeout(() => {
+        if (isListening) {
+          isListening = false;
+          core.className = 'core';
+          status.textContent = 'Скажите "Привет Джарвис"';
+          wakeIndicator.classList.remove('active');
+        }
+      }, 5000);
+    }
+    
+    async function sendToAI(text) {
+      isListening = false;
+      core.className = 'core thinking';
+      status.textContent = 'Думаю...';
+      wakeIndicator.classList.remove('active');
+      
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: text })
+        });
+        
+        const data = await res.json();
+        const answer = data.response;
+        
+        response.textContent = answer;
+        core.className = 'core speaking';
+        status.textContent = 'Говорю...';
+        
+        // Голосовой ответ
+        const u = new SpeechSynthesisUtterance(answer);
+        u.lang = 'ru-RU';
+        u.rate = 0.9;
+        u.pitch = 0.9;
+        u.onend = () => {
+          core.className = 'core';
+          status.textContent = 'Скажите "Привет Джарвис"';
+          transcript.textContent = '';
+        };
+        synth.speak(u);
+        
+      } catch (err) {
+        response.textContent = 'Ошибка связи, сэр';
+        core.className = 'core';
+      }
+    }
+    
+    // Кнопка для мобильных
+    let pressTimer;
+    btnMic.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      if (!isListening) activate();
+      pressTimer = setTimeout(() => {
+        isListening = false;
+        core.className = 'core';
+      }, 3000);
+    });
+    btnMic.addEventListener('touchend', () => clearTimeout(pressTimer));
+    
+    // Клик по ядру
+    core.addEventListener('click', () => {
+      if (!isListening) activate();
+    });
+    
+    // Запуск
+    window.addEventListener('load', init);
+    
+    // Service Worker для PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(console.error);
+    }
+  </script>
+</body>
+</html>
