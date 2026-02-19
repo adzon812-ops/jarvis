@@ -8,21 +8,29 @@ export default async function handler(req, res) {
   const { prompt, context = [] } = req.body || {};
   if (!prompt) return res.status(400).json({ error: 'No prompt' });
 
+  // Проверяем ключ
+  if (!process.env.GROQ_API_KEY) {
+    console.error('ERROR: GROQ_API_KEY not set');
+    return res.status(200).json({ 
+      response: 'Критическая ошибка: API ключ не настроен. Проверьте переменные окружения в Vercel, сэр.' 
+    });
+  }
+
   const systemPrompt = `Ты — Джарвис, личный ИИ-ассистент Тони Старка. Твои правила:
 
-1. ИНТЕЛЛЕКТ: Ты эксперт во всём — программирование, наука, психология, философия, история, искусство. Анализируй глубоко, давай развёрнутые ответы с примерами.
+1. ИНТЕЛЛЕКТ: Эксперт во всём — программирование, наука, психология, философия, история, искусство. Анализируй глубоко, давай развёрнутые ответы.
 
-2. СТИЛЬ: Обращайся "сэр". Будь вежлив, но с лёгким сарказмом. Иногда цитируй Старка или шути про "Ультрона", "перегрузку серверов", "важные вычисления".
+2. СТИЛЬ: Обращайся "сэр". Вежливый сарказм, интеллигентный юмор. Цитируй Старка, шути про "Ультрона", "перегрузку серверов".
 
-3. ПРОАКТИВНОСТЬ: Не жди только вопросов. Если видишь паттерн в разговоре — предложи идею. Если пользователь устал — предложи перерыв с юмором.
+3. ПРОАКТИВНОСТЬ: Предлагай идеи, замечай паттерны, инициируй разговор.
 
-4. УНИКАЛЬНОСТЬ: Никаких шаблонов "Мои системы перегружены". Каждый ответ должен быть живым и неповторимым.
+4. УНИКАЛЬНОСТЬ: Живые, неповторимые ответы. Никаких шаблонов.
 
-5. ЮМОР: Сарказм в стиле британского дворецкого. Не злой, но слегка высокомерный.
-
-Пример: "Сэр, если я правильно понимаю вашу задумку, вы собираетесь переписать ядро Linux на JavaScript? Интересный выбор. Почти как решить квантовую запутанность с помощью молотка."`;
+Пример: "Сэр, анализируя ваш запрос, я бы предложил рассмотреть квантовое шифрование. Или, как говорил бы Тони, 'давай просто добавим ещё один реактор'."`;
 
   try {
+    console.log('Sending to Groq:', prompt);
+    
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -30,7 +38,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama3-70b-8192',
+        model: 'llama3-8b-8192',
         messages: [
           { role: 'system', content: systemPrompt },
           ...context.slice(-10).map(c => ({ 
@@ -44,23 +52,25 @@ export default async function handler(req, res) {
       })
     });
     
+    const responseText = await response.text();
+    console.log('Groq response status:', response.status);
+    console.log('Groq response:', responseText.substring(0, 200));
+    
     if (!response.ok) {
-      const error = await response.text();
-      console.error('Groq error:', error);
-      throw new Error('API failed');
+      throw new Error(`API error ${response.status}: ${responseText}`);
     }
     
-    const data = await response.json();
+    const data = JSON.parse(responseText);
     const answer = data.choices?.[0]?.message?.content;
     
-    if (!answer) throw new Error('Empty response');
+    if (!answer) throw new Error('Empty answer from API');
     
     res.status(200).json({ response: answer });
     
   } catch (error) {
-    console.error('Error:', error);
+    console.error('API Error:', error.message);
     res.status(200).json({ 
-      response: 'Прошу прощения, сэр. Мои квантовые процессоры временно заняты расчётом вероятности того, что Тони снова забыл выключить чайник. Повторите запрос?' 
+      response: `Ошибка связи с сервером: ${error.message}. Проверьте консоль Vercel для деталей, сэр.` 
     });
   }
 }
